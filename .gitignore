@@ -1,0 +1,29 @@
+# Node
+node_modules/
+dist/
+*.log
+
+# TypeScript
+*.tsbuildinfo
+
+# Env
+.env
+.env.*
+
+# Test Coverage
+coverage/
+
+# Vitest UI state
+.vitest/
+
+# macOS
+.DS_Store
+
+# IDEs
+.vscode/
+.idea/
+
+# Optional: lock file (if you prefer one over the other)
+# package-lock.json
+# yarn.lock
+# pn
