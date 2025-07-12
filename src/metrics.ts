@@ -87,7 +87,7 @@ export function registerMetrics(name, options: Config['games'][string]) {
 
   const versionInfo = new Gauge({
     name: `${prefix}_version`,
-    help: 'Static gauge with version label for filtering',
+    help: 'Version of the server',
     labelNames: ['version'],
   })
 

@@ -22,8 +22,12 @@ mockLoggerModule()
 
 
 describe('parseCliOptionsToConfig', () => {
+  const mockExit = vi.fn()
+
+
   beforeEach(() => {
     clearCachedCliArgs()
+    vi.spyOn(process, 'exit').mockImplementation(mockExit as any)
   })
 
   it('parses valid CLI args into config.games', () => {

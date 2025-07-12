@@ -43,7 +43,7 @@ describe('server startup', () => {
     await import('./index.js') // This runs the code
 
     const { getLogger } = await import('@/utility')
-    expect(getLogger().error).toHaveBeenCalledWith('No games found to query, exiting')
+    expect(getLogger().error).toHaveBeenCalledWith('No configuration found, exiting')
     expect(mockExit).toHaveBeenCalledWith(1)
   })
 

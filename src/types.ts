@@ -14,8 +14,11 @@ export const CliArgsSchema = z.object({
   type: z.array(z.string()),
   host: z.array(z.string()),
 }).refine((data) => {
-  const len = data.name.length
-  return data.type.length === len && data.host.length === len
+  const nameLen = data.name.length
+  const typeLen = data.type.length
+  const hostLen = data.host.length
+
+  return typeLen === nameLen && hostLen === nameLen
 }, {
   message: 'Fields \'name\', \'type\', and \'host\' must all be the same length',
 })

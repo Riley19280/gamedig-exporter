@@ -3,10 +3,10 @@ games:
     type: minecraft
     host: mc.hypixel.net
     metrics:
-      connect:
+      protocol:
+        description: 'Minecraft Protocol'
         type: 'gauge'
-        description: 'Metric Connect'
         value: raw.vanilla.raw.version.protocol
         labels:
-          label1: raw.vanilla.connect
-          label2: (data) => data.version
+          connect: raw.connect
+          otherMetric: (data) => data.version.toUpper()
