@@ -1,8 +1,6 @@
-import { z } from 'zod'
+import { z } from 'zod/v4'
 
-type Prettify<T> = {
-  [K in keyof T]: T[K];
-} & {};
+type Prettify<T> = { [K in keyof T]: T[K] } & {};
 
 export const LogLevel = {
   ERROR: 0,
@@ -16,11 +14,11 @@ export const CliArgsSchema = z.object({
   type: z.array(z.string()),
   host: z.array(z.string()),
 }).refine((data) => {
-  const len = data.name.length;
-  return data.type.length === len && data.host.length === len;
+  const len = data.name.length
+  return data.type.length === len && data.host.length === len
 }, {
-  message: "Fields 'name', 'type', and 'host' must all be the same length",
-});
+  message: 'Fields \'name\', \'type\', and \'host\' must all be the same length',
+})
 
 const GameDigQuery = z.object({
   type: z.string(),
@@ -57,11 +55,19 @@ const GameDigQuery = z.object({
 })
 
 const Metrics = z.object({
-  metrics: z.array(z.object({})).optional(),
+  metrics: z.record(z.string(), z.object({
+    type: z.enum(['gauge', 'counter']),
+    description: z.string(),
+    value: z.string(),
+    labels: z.record(z.string(), z.string()).optional()
+  })).optional(),
 })
 
 export const ZConfig = z.object({
-  games: z.record(GameDigQuery.merge(Metrics)),
+  games: z.record(z.string(), z.object({
+    ...GameDigQuery.shape,
+    metrics: z.optional(Metrics),
+  })),
 })
 
 // Inferred TypeScript type:

@@ -2,7 +2,7 @@ import {
   CliArgsSchema,
   Config,
 } from '@/types'
-import { getLogger } from '@/utility.js'
+import { getLogger } from '@/utility'
 import commandLineArgs from 'command-line-args'
 
 const optionDefinitions = [
@@ -10,14 +10,12 @@ const optionDefinitions = [
   { name: 'type', alias: 't', type: String, multiple: true },
   { name: 'host', alias: 'h', type: String, multiple: true },
   { name: 'verbose', alias: 'v', type: Boolean, multiple: true },
-  { name: 'config', type: String, multiple: true },
-  { name: 'validate-config', type: Boolean },
+  { name: 'config', alias: 'c', type: String, multiple: false },
 ]
 
 let _args = null
 
 export function getCliArgs() {
-  console.log('called getCliArgs', _args)
   if (_args) {
     return _args
   }
@@ -48,8 +46,8 @@ export function parseCliOptionsToConfig(): Config {
       }
     }
   } catch (e) {
-    console.error(e)
     getLogger().warn('Unable to parse CLI arguments')
+    getLogger().error(e)
   }
 
   return config

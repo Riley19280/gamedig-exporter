@@ -1,5 +1,8 @@
-import { getConfig } from '@/config.js'
-import { registerMetricsForConfig } from '@/metrics.js'
+import { getConfig } from '@/config'
+import {
+  loadAllMetricsFromConfig,
+  registerMetricsForConfig,
+} from '@/metrics'
 import app from '@/routes'
 import { GameDig } from 'gamedig'
 import request from 'supertest'
@@ -9,6 +12,7 @@ import {
   it,
   vi,
 } from 'vitest'
+
 
 // @ts-ignore
 vi.mock(import('@/config'), async (importOriginal) => {
@@ -33,7 +37,7 @@ describe('GET /', () => {
     const res = await request(app).get('/')
 
     expect(res.status).toBe(200)
-    expect(res.type).toBe('text/plain')
+    expect(res.type).toBe('text/html')
   })
 })
 
@@ -69,4 +73,15 @@ describe('GET /metrics', () => {
     expect(res.text).toContain('gamedig_minecraft_hypixel_version{version="v1.0.0"} 1')
   })
 
+  it('returns 500 if loadAllMetricsFromConfig throws', async () => {
+    const mockError = new Error('Metrics failed to load');
+
+    const metrics = await import('./metrics')
+    vi.spyOn(metrics, 'loadAllMetricsFromConfig').mockRejectedValue(mockError)
+
+    const res = await request(app).get('/metrics')
+
+    expect(res.status).toBe(500)
+    expect(res.text).toContain('Metrics failed to load')
+  })
 })

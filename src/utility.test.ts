@@ -4,6 +4,7 @@ import {
   getLogger,
 } from '@/utility'
 import fs from 'fs'
+import process from 'process'
 import {
   Gauge,
   register,
@@ -75,7 +76,7 @@ describe('loadConfig', () => {
     })
   })
 
-  it('should throw ZodError on invalid config', () => {
+  it('should exit on invalid config structure', () => {
     const mockYaml = YAML.stringify({
       host: 'localhost', // missing required `type`
     })
@@ -83,7 +84,28 @@ describe('loadConfig', () => {
     // @ts-ignore
     fs.readFileSync.mockReturnValue(mockYaml)
 
-    expect(() => loadConfigFromFile('mock.yml')).toThrowError(/type/)
+    const mockExit = vi.spyOn(process, 'exit')
+                       .mockImplementation((number) => { throw new Error('process.exit: ' + number) })
+
+    expect(() => loadConfigFromFile('mock.yml')).toThrow(/process\.exit: 1/)
+
+    expect(mockExit).toHaveBeenCalledWith(1)
+    mockExit.mockRestore()
+  })
+
+  it('should exit on invalid config file', () => {
+    const mockYaml = "[[["
+
+    // @ts-ignore
+    fs.readFileSync.mockReturnValue(mockYaml)
+
+    const mockExit = vi.spyOn(process, 'exit')
+                       .mockImplementation((number) => { throw new Error('process.exit: ' + number) })
+
+    expect(() => loadConfigFromFile('mock.yml')).toThrow(/process\.exit: 1/)
+
+    expect(mockExit).toHaveBeenCalledWith(1)
+    mockExit.mockRestore()
   })
 })
 

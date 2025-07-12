@@ -3,13 +3,13 @@ import {
   getCliArgs,
   parseCliOptionsToConfig,
 } from '@/cli'
-import * as cli from '@/cli.js'
+import * as cli from '@/cli'
 import {
   clearCachedConfig,
   getConfig,
-} from '@/config.js'
+} from '@/config'
 import commandLineArgs from 'command-line-args'
-import { mockLoggerModule } from '@/test-utils.js'
+import { mockLoggerModule } from '@/test-utils'
 import {
   beforeEach,
   describe,
@@ -33,8 +33,6 @@ describe('parseCliOptionsToConfig', () => {
       type: ['minecraft'],
       host: ['localhost'],
     })
-
-    console.error(parseCliOptionsToConfig)
 
     const config = parseCliOptionsToConfig()
 

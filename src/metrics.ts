@@ -1,4 +1,5 @@
-import { Config } from '@/types.js'
+import { getConfig } from '@/config.js'
+import { Config } from '@/types'
 import {
   createMetricPrefix,
   findMetric,
@@ -9,24 +10,30 @@ import {
   QueryOptions,
   QueryResult,
 } from 'gamedig'
-import {
-  Gauge,
-  register,
-} from 'prom-client'
+import _ from 'lodash'
+import { Gauge } from 'prom-client'
 
-export async function loadMetrics(name, options: QueryOptions) {
+export async function loadAllMetricsFromConfig() {
+  return await Promise.all(Object.entries(getConfig().games).map(([name, cfg]) => loadMetrics(name, cfg)))
+}
+
+export async function loadMetrics(name, options: Config['games'][string]) {
   const prefix = createMetricPrefix(name, options.type)
 
-  const data: QueryResult|null = await GameDig.query(options).then((state) => {
-    return state
-  })
-  .catch((err) => {
-    getLogger().warn(`Unable to query server for ${name} type:${options.type} host:${options.host}`)
-    getLogger().error(err)
-    return null
-  })
+  const data: QueryResult | null = await GameDig
+    .query(options as QueryOptions)
+    .then((state) => {
+      return state
+    })
+    .catch((err) => {
+      getLogger().warn(`Unable to query server for ${name} type:${options.type} host:${options.host}`)
+      getLogger().error(err)
+      return null
+    })
 
-  if(!data) {
+  getLogger().debug(JSON.stringify(data, null, 4))
+
+  if (!data) {
     findMetric(`${prefix}_up`).set({}, 0)
     return
   }
@@ -36,14 +43,16 @@ export async function loadMetrics(name, options: QueryOptions) {
   findMetric(`${prefix}_ping_milliseconds`).set({}, data.ping)
   findMetric(`${prefix}_up`).set({}, 1)
   findMetric(`${prefix}_requires_password`).set({}, data.password ? 1 : 0)
-  findMetric(`${prefix}_version`).set({version: data.version}, 1)
+  findMetric(`${prefix}_version`).set({ version: data.version }, 1)
+
+  loadCustomMetrics(name, options, data)
 }
 
 export function registerMetricsForConfig(config: Config) {
-  Object.entries(config.games).map(([name, cfg]) => registerMetrics(name, cfg as QueryOptions))
+  Object.entries(config.games).map(([name, cfg]) => registerMetrics(name, cfg))
 }
 
-export function registerMetrics(name, options: QueryOptions) {
+export function registerMetrics(name, options: Config['games'][string]) {
   const prefix = createMetricPrefix(name, options.type)
 
   const playersOnline = new Gauge({
@@ -82,12 +91,69 @@ export function registerMetrics(name, options: QueryOptions) {
     labelNames: ['version'],
   })
 
-  return {
-    playersOnline,
-    maxPlayers,
-    serverPing,
-    serverUp,
-    passwordProtected,
-    versionInfo,
+  // Custom Metrics
+  Object.entries(options.metrics ?? {}).map(([metricName, metricConfig]) => {
+    const prefix = createMetricPrefix(name, options.type)
+    const fullMetricName = `${prefix}_${metricName}`
+
+    new Gauge({
+      name: fullMetricName,
+      help: metricConfig.description,
+      labelNames: Object.keys((metricConfig.labels ?? {})),
+    })
+  })
+}
+
+
+export function loadCustomMetrics(name, options: Config['games'][string], data: QueryResult) {
+  if (!options.metrics) {
+    return
   }
+
+  Object.entries(options.metrics).map(([metricName, metricConfig]) => {
+    const prefix = createMetricPrefix(name, options.type)
+    const fullMetricName = `${prefix}_${metricName}`
+
+    const metric = findMetric(fullMetricName)
+
+    let value = (() => {
+      const val = _.get(data, metricConfig.value, new Error('Not Found'))
+
+      if (val instanceof Error) {
+        try {
+          return eval(`(${metricConfig.value})(data)`)
+        } catch (e) {
+          getLogger().error(e)
+          return undefined
+        }
+      } else {
+        return val
+      }
+    })()
+
+    const labels = Object.entries(metricConfig.labels ?? {}).reduce((acc, [label, labelValue]) => {
+      acc[label] = (() => {
+        const val = _.get(data, labelValue, new Error(`Path ${labelValue} not found in data`))
+
+        if (val instanceof Error) {
+          try {
+            return eval(`(${labelValue})(data)`)
+          } catch (e) {
+            getLogger().error(e)
+            return undefined
+          }
+        } else {
+          return val
+        }
+      })()
+
+      return acc
+    }, {})
+
+
+    if (value) {
+      // metric.labelNames = Object.keys((metricConfig.labels))
+      metric.set(labels, value)
+    }
+  })
 }

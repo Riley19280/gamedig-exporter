@@ -1,4 +1,4 @@
-import { mockLoggerModule } from '@/test-utils.js'
+import { mockLoggerModule } from '@/test-utils'
 import path from 'path'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import {

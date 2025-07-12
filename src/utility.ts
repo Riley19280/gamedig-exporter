@@ -1,5 +1,5 @@
 
-import { getCliArgs } from '@/cli.js'
+import { getCliArgs } from '@/cli'
 import {
   LogLevel,
 } from '@/types'
@@ -21,8 +21,10 @@ export function findMetric(name: string) {
 
 export function getLogger() {
   const cliArgs = getCliArgs()
-  const level = cliArgs.verbose?.filter(x => x).length ?? 0
+  const level = cliArgs?.verbose?.filter(x => x).length ?? 0
+
   return {
+    log: (...args: any[]) => console.log(...args),
     error: (...args: any[]) => level >= LogLevel.ERROR && console.error(...args),
     warn: (...args: any[]) => level >= LogLevel.WARN && console.warn(...args),
     info: (...args: any[]) => level >= LogLevel.INFO && console.info(...args),

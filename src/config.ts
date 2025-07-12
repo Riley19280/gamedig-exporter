@@ -5,7 +5,7 @@ import {
 import {
   Config,
   ZConfig,
-} from '@/types.js'
+} from '@/types'
 import { getLogger } from '@/utility'
 import fs from 'fs'
 import path from 'path'
@@ -44,20 +44,28 @@ export function getConfig(): Config {
   return _config
 }
 
-export function clearCachedConfig(){
+export function clearCachedConfig() {
   _config = null
 }
 
 export function loadConfigFromFile(filepath: string): Config {
   const file = fs.readFileSync(filepath, 'utf8')
-  const data = YAML.parse(file)
 
+  let data
   try {
-    return ZConfig.parse(data)
+    data = YAML.parse(file)
   } catch (err) {
-    throw err
-    // if (err instanceof z.ZodError) {
-    // }
+    getLogger().error(`Failed to parse config at ${filepath}.\n${err.toString()}`)
+    process.exit(1)
   }
 
+  const result = ZConfig.safeParse(data)
+
+  if (result.success) {
+    return result.data
+  }
+
+  const errors = result.error.issues.map(err => `${err.path.join('.')}: ${err.message}`)
+  getLogger().error(errors)
+  process.exit(1)
 }
