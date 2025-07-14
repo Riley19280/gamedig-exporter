@@ -25,7 +25,7 @@ if (Object.keys(getConfig().games).length === 0) {
 
 /* c8 ignore start docker exit handling */
 function shutdown() {
-  server.close(() => {
+  server?.close(() => {
     getLogger().log(`Server is stopping...`)
     process.exit(0);
   });
