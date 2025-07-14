@@ -13,9 +13,6 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Set up QEMU (optional, for multi-arch)
-        uses: docker/setup-qemu-action@v2
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -33,5 +30,5 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/gamedig-exporter:latest
-            ghcr.io/${{ github.repository_owner }}/gamedig-exporter:${{ github.event.release.tag_name }}
+            ghcr.io/riley19280/gamedig-exporter:latest
+            ghcr.io/riley19280/gamedig-exporter:${{ github.event.release.tag_name }}
