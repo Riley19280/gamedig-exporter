@@ -5,7 +5,7 @@ GameDig provides hundreds of [available games](https://github.com/gamedig/node-g
 
 The easiest way to get started is to just run the docker container with arguments
 ```shell
-docker run --rm -p 9339:9339 gamedig-exporter:latest index.js \ 
+docker run --rm -p 9339:9339 ghcr.io/riley19280/gamedig-exporter:latest index.js \ 
 --type=minecraft \
 --name=hypixel \
 --host=mc.hypixel.net
@@ -41,12 +41,12 @@ for the available options when configuring a game.
 
 The config file can then be mounted into the container at the path `/app/config.yml` and will be automatically loaded.
 ```shell
-docker run --rm -p 9339:9339 -v ./examples/all.config.yml:/app/config.yml gamedig-exporter:latest
+docker run --rm -p 9339:9339 -v ./examples/all.config.yml:/app/config.yml ghcr.io/riley19280/gamedig-exporter:latest
 ```
 
 # Running with cli args
 ```shell
-docker run --rm -p 8080:80 gamedig-exporter:latest /app/dist/index.js -vvv
+docker run --rm -p 8080:80 ghcr.io/riley19280/gamedig-exporter:latest /app/dist/index.js -vvv
 ```
 
 ##  Custom Metrics
@@ -72,7 +72,7 @@ The value of a metric or label can be given using a JSON path style string, or a
 
 To view the raw data that a game exposes, you can run the docker container with increased verbosity. This will then print the raw data that is available to you.
 ```yaml
-docker run --rm -v ./examples/all.config.yml:/app/config.yml gamedig-exporter:latest index.js -vvv
+docker run --rm -v ./examples/all.config.yml:/app/config.yml ghcr.io/riley19280/gamedig-exporter:latest index.js -vvv
 ```
 
 
