@@ -328,4 +328,39 @@ describe('loadMetrics', () => {
 
     expect(resp).toContain('gamedig_game_my_server_metric1{label1="undefined"} 50')
   })
+
+  it('loads player metrics', async () => {
+    vi.spyOn(GameDig, 'query').mockResolvedValue({
+      name: 'Hypixel',
+      map: 'world',
+      version: 'v1.0.0',
+      password: false,
+      maxplayers: 100,
+      numplayers: 25,
+      players: [{ name: 'Steve', ping: 50 }, { name: 'Herobrine', ping: 50 }],
+      bots: [],
+      connect: 'mc.hypixel.net',
+      ping: 42,
+      raw: {},
+    } as any)
+
+    const options = {
+      type: 'game',
+      host: 'localhost',
+      playerMetrics: true,
+      metrics: {
+        metric1: {
+          description: 'metric 1 desc',
+          value: '(data) => { return data.players[0].ping * 100 }',
+        },
+      },
+    }
+
+    registerMetrics('my_server', options)
+    await loadMetrics('my_server', options)
+    const resp = await register.metrics()
+
+    expect(resp).toContain('gamedig_game_my_server_player_active{Steve="1"} 1\n')
+    expect(resp).toContain('gamedig_game_my_server_player_active{Herobrine="1"} 1\n')
+  })
 })

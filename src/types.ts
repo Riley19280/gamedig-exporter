@@ -69,6 +69,7 @@ const Metrics = z.object({
 export const ZConfig = z.object({
   games: z.record(z.string(), z.object({
     ...GameDigQuery.shape,
+    playerMetrics: z.boolean().optional(),
     metrics: z.optional(Metrics),
   })),
 })

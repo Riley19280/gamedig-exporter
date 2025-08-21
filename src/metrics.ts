@@ -46,6 +46,7 @@ export async function loadMetrics(name, options: Config['games'][string]) {
   findMetric(`${prefix}_version`).set({ version: data.version }, 1)
 
   loadCustomMetrics(name, options, data)
+  loadPlayerMetrics(name, options, data)
 }
 
 export function registerMetricsForConfig(config: Config) {
@@ -99,9 +100,22 @@ export function registerMetrics(name, options: Config['games'][string]) {
     new Gauge({
       name: fullMetricName,
       help: metricConfig.description,
-      labelNames: Object.keys((metricConfig.labels ?? {})),
+      labelNames: Object.keys(metricConfig.labels ?? {}),
     })
   })
+
+  // Player Metrics
+  if (options.playerMetrics) {
+    const prefix = createMetricPrefix(name, options.type)
+    const fullMetricName = `${prefix}_player_active`
+
+    new Gauge({
+      name: fullMetricName,
+      help: 'Active Online Players',
+      labelNames: [],
+    })
+  }
+
 }
 
 
@@ -156,4 +170,20 @@ export function loadCustomMetrics(name, options: Config['games'][string], data: 
       metric.set(labels, value)
     }
   })
+}
+
+export function loadPlayerMetrics(name: string, options: Config['games'][string], data: QueryResult) {
+  if (!options.playerMetrics) {
+    return
+  }
+
+  const prefix = createMetricPrefix(name, options.type)
+  const fullMetricName = `${prefix}_player_active`
+
+  const metric = findMetric(fullMetricName)
+  const names: string[] = data.players.map((player) => player.name).filter(x => !!x) as string[]
+
+  metric.reset()
+  metric.labelNames = names
+  names.map(n => metric.set({[n]: 1}, 1))
 }
